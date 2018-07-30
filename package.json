@@ -1,5 +1,5 @@
 {
-  "name": "aws-kcl",
+  "name": "st-aws-kcl",
   "description": "Kinesis Client Libray (KCL) in Node.js.",
   "version": "0.7.0",
   "author": {
