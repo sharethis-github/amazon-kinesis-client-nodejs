@@ -53,6 +53,9 @@ var MAVEN_PACKAGE_LIST = [
 var DEFAULT_JAR_PATH = path.resolve(path.join(__dirname, '..', 'lib', 'jars'));
 var MULTI_LANG_DAEMON_CLASS = 'com.amazonaws.services.kinesis.multilang.MultiLangDaemon';
 var MAX_HTTP_REDIRECT_FOLLOW = 3;
+var DEFAULT_INITIAL_HEAP_SIZE = '1024m';
+var DEFAULT_MAX_HEAP_SIZE = '1024m';
+var DEFAULT_STACK_SIZE = '50m';
 
 
 function bootstrap() {
@@ -69,6 +72,9 @@ function parseArguments() {
   program
     .option('-p, --properties <properties file>', 'properties file with multi-language daemon options')
     .option('-j, --java [java path]', 'path to java executable - defaults to using JAVA_HOME environment variable to get java path (optional)')
+    .option('-i, --initialHeapSize [initial heap size]', 'initial JVM heap size (optional)')
+    .option('-m, --maxHeapSize [max heap size]', 'maximum JVM heap size (optional)')
+    .option('-s, --stackSize [stack size]', 'set java thread stack size (optional)')
     .option('-c, --jar-path [jar path]', 'path where all multi-language daemon jar files will be downloaded (optional)')
     .option('-e, --execute', 'execute the KCL application')
     .parse(process.argv);
@@ -77,7 +83,10 @@ function parseArguments() {
     'properties': program.properties,
     'java': (program.java ? program.java : (process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', 'java') : null)),
     'jarPath': (program.jarPath ? program.jarPath : DEFAULT_JAR_PATH),
-    'execute': program.execute
+    'execute': program.execute,
+    'initialHeapSize': (program.initialHeapSize ? program.initialHeapSize : DEFAULT_INITIAL_HEAP_SIZE),
+    'maxHeapSize': (program.maxHeapSize ? program.maxHeapSize : DEFAULT_MAX_HEAP_SIZE),
+    'stackSize': (program.stackSize ? program.stackSize : DEFAULT_STACK_SIZE)
   };
 
   if (!args.properties) {
@@ -102,7 +111,8 @@ function startKinesisClientLibraryApplication(options) {
   var classpath = getClasspath(options).join(getPathDelimiter());
   var java = options.java;
   var args = ['-cp', classpath, MULTI_LANG_DAEMON_CLASS, options.properties];
-  var cmd = java + ' -Xms1024m -Xmx1024m -Xss50m -XX:MaxPermSize=512m ' + args.join(' ');
+  var sz = ' -Xms' + options.initialHeapSize + ' -Xmx' + options.maxHeapSize + ' -Xss' + options.stackSize + ' ';
+  var cmd = java + sz + args.join(' ');
 
   console.log("==========================================================");
   console.log(cmd);
